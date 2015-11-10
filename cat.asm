@@ -1,3 +1,4 @@
+org 100h
 c:
 resw 1
 mov dx,c

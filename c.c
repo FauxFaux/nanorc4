@@ -7,38 +7,41 @@ static uint8_t key_len;
 static uint8_t *key;
 
 static uint8_t state[256];
-static uint8_t i = 0, j = 0;
+static uint8_t i;
+static uint8_t j;
 
 
 void arcfour_key_setup(void) {
-    uint8_t k = 0;
+    i = 0;
     for (;;) {
-        state[k] = k;
-        ++k;
-        if (0 == k) { // overflow
+        state[i] = i;
+        ++i;
+        if (0 == i) { // overflow
             break;
         }
     }
 
-    uint8_t kj = 0;
-    uint8_t ki = 0;
+    j = 0;
+    i = 0;
     for (;;) {
-        uint8_t key_index = ki % key_len;
+        uint8_t key_index = i % key_len;
         uint8_t key_part = key[key_index];
-        uint8_t state_part = state[ki];
+        uint8_t state_part = state[i];
 
-        kj += state_part + key_part;
+        j += state_part + key_part;
 
         // swap
-        uint8_t t = state[ki];
-        state[ki] = state[kj];
-        state[kj] = t;
+        uint8_t t = state[i];
+        state[i] = state[j];
+        state[j] = t;
 
-        ++ki;
-        if (ki == 0) { // overflow
+        ++i;
+        if (i == 0) { // overflow
             break;
         }
     }
+    i = 0;
+    j = 0;
 }
 
 uint8_t next(void) {
