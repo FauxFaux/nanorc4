@@ -23,7 +23,11 @@ void arcfour_key_setup(void) {
     uint8_t kj = 0;
     uint8_t ki = 0;
     for (;;) {
-        kj = (kj + state[ki] + key[ki % key_len]) % 256;
+        uint8_t key_index = ki % key_len;
+        uint8_t key_part = key[key_index];
+        uint8_t state_part = state[ki];
+
+        kj += state_part + key_part;
 
         // swap
         uint8_t t = state[ki];
@@ -38,15 +42,17 @@ void arcfour_key_setup(void) {
 }
 
 uint8_t next(void) {
-    i = (i + 1) % 256;
-    j = (j + state[i]) % 256;
+    ++i;
+    j += state[i];
 
     // swap
     uint8_t t = state[i];
     state[i] = state[j];
     state[j] = t;
 
-    return state[(state[i] + state[j]) % 256];
+    uint8_t next_index = state[i] + state[j];
+
+    return state[next_index];
 }
 
 void drop(void) {
@@ -74,8 +80,6 @@ int main(int argc, char **argv) {
     key_len = strlen(key);
 
     arcfour_key_setup();
-    
-    
     arcfour_generate_stream();
 }
 
