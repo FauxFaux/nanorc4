@@ -174,6 +174,7 @@ mov ah, 0bh ; check stdin status
 int 21h
 test al,al ; check if it's zero: 0 = no character available -> eof
 jne generate
+int 20h
 ;         putchar(got ^ next());
 ;     }
 ; }
