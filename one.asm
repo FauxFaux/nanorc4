@@ -169,7 +169,11 @@ xor dl, al
 mov ah, 02h
 int 21h
 
-jmp generate
+
+mov ah, 0bh ; check stdin status
+int 21h
+test al,al ; check if it's zero: 0 = no character available -> eof
+jne generate
 ;         putchar(got ^ next());
 ;     }
 ; }
