@@ -72,23 +72,29 @@ mov ah, [bx]
 add al, ah
 add j, al
 
-;         // swap
-;         uint8_t t = state[i];
-%define t dl
 
-mov bx, state
-mov bl, i
-mov t, [bx]
+%macro swap 0
+    ; dl = state[i]
+    ; dh = state[j]
+    ; state[j] = dl
+    ; state[i] = dh
 
-;         state[i] = state[j];
-mov bl, j
-mov al, [bx]
-mov bl, i
-mov [bx], al
+    mov bx, state
 
-;         state[j] = t;
-mov bl, j
-mov [bx], t
+    mov bl, i
+    mov dl, [bx]
+
+    mov bl, j
+    mov dh, [bx]
+
+    mov [bx], dl
+
+    mov bl, i
+    mov [bx], dh
+
+%endmacro
+
+swap
 
 ;         ++i;
 inc i
@@ -105,20 +111,36 @@ mov j, 0
 
 ; }
 
-c: jmp c
-
 ; uint8_t next(void) {
-;     ++i;
-;     j += state[i];
 
-;     // swap
-;     uint8_t t = state[i];
-;     state[i] = state[j];
-;     state[j] = t;
+; bh -> state masked
+; bl destroyed
+; dl destroyed
+%macro next 0
 
-;     uint8_t next_index = state[i] + state[j];
+    ;     ++i;
+    inc i
 
-;     return state[next_index];
+    ;     j += state[i];
+    mov bx, state
+    mov bl, i
+    add j, [bx]
+
+    swap
+
+    ;     uint8_t next_index = state[i] + state[j];
+    mov bl, i
+    mov dl, [bx]
+    mov bl, j
+    add dl, [bx]
+
+    ;     return state[next_index];
+
+    mov bl, dl
+    mov dl, [bx]
+
+%endmacro
+
 ; }
 
 ; void drop(void) {
@@ -127,12 +149,27 @@ c: jmp c
 ;     }
 ; }
 
+
 ; void arcfour_generate_stream(void) {
 ;     for (;;) {
+generate:
 ;         int got = getchar();
+mov ah, 08h ; character input without echo
+int 21h
+
 ;         if (EOF == got) {
 ;             return;
 ;         }
+
+; ???
+
+next
+
+xor dl, al
+mov ah, 02h
+int 21h
+
+jmp generate
 ;         putchar(got ^ next());
 ;     }
 ; }
