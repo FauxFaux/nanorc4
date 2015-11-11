@@ -39,8 +39,9 @@ jnz key_setup_first
 
 ;     j = 0;
 ;     i = 0;
-mov i, 0
-mov j, 0
+; mov i, 0
+; mov j, 0
+xor cx,cx
 
 ;     for (;;) {
 key_setup_second:
@@ -165,29 +166,20 @@ int 21h
 
 next
 
+;         putchar(got ^ next());
 xor dl, al
 mov ah, 02h
 int 21h
 
-
+; .. decide whether to loop down here instead;
+; so we always prompt for at least one character (?)
 mov ah, 0bh ; check stdin status
 int 21h
 test al,al ; check if it's zero: 0 = no character available -> eof
 jne generate
+
+; exit
 int 20h
-;         putchar(got ^ next());
 ;     }
-; }
-
-; int main(int argc, char **argv) {
-;     if (2 != argc) {
-;         fprintf(stderr, "usage: %s 'key'", argv[0]);
-;         return 1;
-;     }
-;     key = argv[1];
-;     key_len = strlen(key);
-
-;     arcfour_key_setup();
-;     arcfour_generate_stream();
 ; }
 
