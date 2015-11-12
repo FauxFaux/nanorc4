@@ -19,7 +19,8 @@
 
 ; void arcfour_key_setup(void) {
 ;     i = 0;
-mov bx, state                           ; start at the bottom of the state
+;mov bx, state                           ; start at the bottom of the state
+mov bx, state
 
 ;     for (;;) {
 key_setup_first:
@@ -47,28 +48,19 @@ xor cx,cx
 key_setup_second:
 
 ;         uint8_t key_index = i % key_len;
-xor ax,ax
-mov al, i                               ; dividee
-mov bx, [key_len]
-dec bx                                  ; key_len includes the leading space
-; div: ax / (arg1); quotient -> al, remainder -> ah
-div bl
-
 ;         uint8_t key_part = key[key_index];
 mov bh, 0
-mov bl, ah
+mov bl, i
+and bl, 31
 add bx, key
-mov al, [bx]
+add j, [bx]
 
 ;         uint8_t state_part = state[i];
-mov bx, state
-add bl, i
-
-mov ah, [bx]
+mov bh, 2
+mov bl, i
+add j, [bx]
 
 ;         j += state_part + key_part;
-add al, ah
-add j, al
 
 
 %macro swap 0
