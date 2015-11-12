@@ -52,8 +52,8 @@ key_setup_second:
 mov bh, 0
 mov bl, i
 and bl, 31
-add bx, key
-add j, [bx]
+;add bl, key
+add j, [bx+key]
 
 ;         uint8_t state_part = state[i];
 mov bh, 2
@@ -63,28 +63,8 @@ add j, [bx]
 ;         j += state_part + key_part;
 
 
-%macro swap 0
-    ; dl = state[i]
-    ; dh = state[j]
-    ; state[j] = dl
-    ; state[i] = dh
 
-    mov bh, 2 ; state
-    mov bl, i
-
-    mov dl, [bx]
-
-    mov bl, j
-    mov dh, [bx]
-
-    mov [bx], dl
-
-    mov bl, i
-    mov [bx], dh
-
-%endmacro
-
-swap
+call swap
 
 ;         ++i;
 inc i
@@ -109,35 +89,8 @@ xor cx, cx
 ; dl destroyed
 %macro next 0
 
-    ;     ++i;
-    inc i
-
-    ;     j += state[i];
-    mov bh, 2 ; state
-    mov bl, i
-    add j, [bx]
-
-    swap
-
-    ;     uint8_t next_index = state[i] + state[j];
-    mov bl, i
-    mov dl, [bx]
-    mov bl, j
-    add dl, [bx]
-
-    ;     return state[next_index];
-
-    mov bl, dl
-    mov dl, [bx]
-
 %endmacro
 
-; }
-
-; void drop(void) {
-;     for (int k = 0; k < 1024; ++k) {
-;         next();
-;     }
 ; }
 
 
@@ -154,7 +107,29 @@ int 21h
 
 ; ???
 
-next
+; next
+    ;     ++i;
+    inc i
+
+    ;     j += state[i];
+    mov bh, 2 ; state
+    mov bl, i
+    add j, [bx]
+
+    call swap
+
+    ;     uint8_t next_index = state[i] + state[j];
+    mov bl, i
+    mov dl, [bx]
+    mov bl, j
+    add dl, [bx]
+
+    ;     return state[next_index];
+
+    mov bl, dl
+    mov dl, [bx]
+
+; end next
 
 ;         putchar(got ^ next());
 xor dl, al
@@ -172,4 +147,25 @@ jne generate
 int 20h
 ;     }
 ; }
+
+swap:
+    ; dl = state[i]
+    ; dh = state[j]
+    ; state[j] = dl
+    ; state[i] = dh
+
+    mov bh, 2 ; state
+    mov bl, i
+
+    mov dl, [bx]
+
+    mov bl, j
+    mov dh, [bx]
+
+    mov [bx], dl
+
+    mov bl, i
+    mov [bx], dh
+
+    ret
 

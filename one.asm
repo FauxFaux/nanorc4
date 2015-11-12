@@ -16,7 +16,6 @@
 ; static uint8_t j;
 %define j ch
 
-
 ; void arcfour_key_setup(void) {
 ;     i = 0;
 mov bx, state                           ; start at the bottom of the state
@@ -36,7 +35,6 @@ jnz key_setup_first
 ;         }
 ;     }
 
-
 ;     j = 0;
 ;     i = 0;
 ; mov i, 0
@@ -49,20 +47,17 @@ key_setup_second:
 ;         uint8_t key_index = i % key_len;
 xor ax,ax
 mov al, i                               ; dividee
-mov bx, [key_len]
-dec bx                                  ; key_len includes the leading space
-; div: ax / (arg1); quotient -> al, remainder -> ah
+mov bl, [key_len]
+dec bl                                  ; key_len includes the leading space
+; div: ax / (arg1: bl); quotient -> al, remainder -> ah
 div bl
 
 ;         uint8_t key_part = key[key_index];
-mov bh, 0
 mov bl, ah
-add bx, key
-mov al, [bx]
+mov al, [bx+key-state]
 
 ;         uint8_t state_part = state[i];
-mov bx, state
-add bl, i
+mov bl, i
 
 mov ah, [bx]
 
@@ -71,28 +66,7 @@ add al, ah
 add j, al
 
 
-%macro swap 0
-    ; dl = state[i]
-    ; dh = state[j]
-    ; state[j] = dl
-    ; state[i] = dh
-
-    mov bh, 2 ; state
-    mov bl, i
-
-    mov dl, [bx]
-
-    mov bl, j
-    mov dh, [bx]
-
-    mov [bx], dl
-
-    mov bl, i
-    mov [bx], dh
-
-%endmacro
-
-swap
+call swap
 
 ;         ++i;
 inc i
@@ -121,11 +95,10 @@ xor cx, cx
     inc i
 
     ;     j += state[i];
-    mov bh, 2 ; state
     mov bl, i
     add j, [bx]
 
-    swap
+    call swap
 
     ;     uint8_t next_index = state[i] + state[j];
     mov bl, i
@@ -180,4 +153,23 @@ jne generate
 int 20h
 ;     }
 ; }
+swap:
+    ; dl = state[i]
+    ; dh = state[j]
+    ; state[j] = dl
+    ; state[i] = dh
+
+    mov bl, i
+
+    mov dl, [bx]
+
+    mov bl, j
+    mov dh, [bx]
+
+    mov [bx], dl
+
+    mov bl, i
+    mov [bx], dh
+
+ret
 
